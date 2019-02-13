@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.je.GameProject.mapper.MemberMapper">
+
+	<!--회원정보 저장 -->
+	<insert id="insertMember" parameterType="MemberVO">
+		INSERT INTO member_tbl
+		VALUES (
+		#{memberId},
+		#{memberPassword},
+		#{memberNickname},
+		#{memberName},
+		#{memberGender},
+		#{memberAge},
+		#{memberEmail},
+		#{memberPhone},
+		#{memberBirth},
+		#{memberZip},
+		#{memberAddressBasic},
+		#{memberAddressDetail})
+	</insert>
+
+	<!--전체 회원 보기 -->
+	<select id="selectAllMembers" resultType="MemberVO">
+		SELECT * FROM
+		member_tbl
+	</select>
+
+	<!-- 개별 회원 보기 -->
+	<select id="selectMember" parameterType="String"
+		resultType="MemberVO">
+		SELECT * FROM member_tbl WHERE member_id = #{memberId}
+	</select>
+
+	<!-- 회원 정보 수정 -->
+	<update id="updateMember" parameterType="MemberVO">
+		UPDATE member_tbl SET
+		member_password = #{memberPassword},
+		member_email = #{memberEmail},
+		member_phone = #{memberPhone},
+		member_zip = #{memberZip},
+		member_address_basic = #{memberAddressBasic},
+		member_address_detail =
+		#{memberAddressDetail}
+		WHERE member_id = #{memberId}
+	</update>
+
+
+	<select id="selectAllMembersByPage" resultType="MemberVO">
+		SELECT *
+		FROM
+		(SELECT ROWNUM,
+		m.*,
+		FLOOR((ROWNUM - 1)/#{rowsPerPage} + 1) page
+		FROM (
+		SELECT * FROM member_tbl
+		ORDER BY MEMBER_ID ASC
+		) m
+		)
+		WHERE page = #{page}
+	</select>
+
+
+	<!-- 회원 정보 검색 -->
+	<select id="selectMembersBySearch" resultType="MemberVO">
+
+		SELECT *
+		FROM (SELECT ROWNUM,
+		m.*,
+		FLOOR((ROWNUM - 1)/#{rowsPerPage} + 1) page
+		FROM (
+		SELECT * FROM member_tbl
+		WHERE ${searchKindFld} LIKE '%${searchWord}%'
+		<if test="searchKind == '아이디'">
+            and member_id like '%${searchWord}%'
+        </if>
+		<if test="searchKind == '이름'">
+            and member_name like '%${searchWord}%'
+        </if>
+        <if test="searchKind == '별명'">
+            and member_nickname like '%${searchWord}%'
+        </if>
+        <if test="searchKind == '주소'">
+            and member_address_basic like '%${searchWord}%'
+        </if>
+        <if test="searchKind == '이메일'">
+            and member_email like '%${searchWord}%'
+        </if>
+		
+		ORDER BY MEMBER_ID ASC
+		) m
+		)
+		WHERE page = #{page}
+	</select>
+	
+	<!-- 회원 정보 검색 전체 결과 페이지-->
+	<select id="selectMembersCountBySearch" resultType="int">
+		SELECT count(*)
+		FROM (SELECT ROWNUM,
+		m.*
+		FROM (
+		SELECT * FROM member_tbl
+		WHERE ${searchKindFld} LIKE '%${searchWord}%'
+		<if test="searchKind == '아이디'">
+            and member_id like '%${searchWord}%'
+        </if>
+		<if test="searchKind == '이름'">
+            and member_name like '%${searchWord}%'
+        </if>
+        <if test="searchKind == '별명'">
+            and member_nickname like '%${searchWord}%'
+        </if>
+        <if test="searchKind == '주소'">
+            and member_address_basic like '%${searchWord}%'
+        </if>
+        <if test="searchKind == '이메일'">
+            and member_email like '%${searchWord}%'
+        </if>
+		
+		ORDER BY MEMBER_ID ASC
+		) m
+		)
+	</select>
+
+</mapper>

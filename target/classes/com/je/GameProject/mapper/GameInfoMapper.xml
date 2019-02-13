@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.je.GameProject.mapper.GameInfoMapper">
+
+	<insert id="insertGameInfo" parameterType="GameInfoVO">
+		<![CDATA[
+		insert into game_info
+		values
+		(	
+			game_info_seq.nextval,
+			#{gameName},
+			#{gameGenre},
+			#{gameCompany},
+			#{gamePubDate},
+			#{gameDetail}
+		)]]>
+	</insert>
+
+	<select id="selectAllGameInfo" resultType="GameInfoVO">
+		select * from
+		game_info
+	</select>
+
+	<select id="selectGameInfo" resultType="GameInfoVO"
+		parameterType="String">
+		select * from
+		game_info
+		where game_name = #{gameName}
+	</select>
+
+	<select id="selectClipGameInfo" resultType="GameClipInfoVO"
+		parameterType="String">
+		select * from
+		game_clip_info
+		where game_id = (SELECT id
+		FROM game_info
+		WHERE game_name = #{gameName})
+	</select>
+
+	<!-- 게임 목록 페이징 -->
+	<select id="selectAllGamesByPage" resultType="GameInfoVO">
+		SELECT *
+		FROM
+		(SELECT ROWNUM,
+		m.*,
+		FLOOR((ROWNUM - 1)/#{rowsPerPage} + 1) page
+		FROM (
+		SELECT * FROM game_info
+		ORDER BY game_name ASC
+		) m
+		)
+		WHERE page = #{page}
+	</select>
+
+	<!-- 게임 목록 검색 -->
+	<select id="selectGamesBySearch" resultType="GameInfoVO">
+
+		SELECT *
+		FROM (SELECT ROWNUM,
+		m.*,
+		FLOOR((ROWNUM - 1)/#{rowsPerPage} + 1)
+		page
+		FROM (
+		SELECT * FROM game_info
+		WHERE ${searchKindFld} LIKE '%${searchWord}%'
+		ORDER BY id ASC
+		) m
+		)
+		WHERE page = #{page}
+	</select>
+
+	<!-- <if test="searchKind == '게임 이름'">
+			and game_name like '%${searchWord}%'
+		</if>
+		<if test="searchKind == '게임 장르'">
+			and game_genre like '%${searchWord}%'
+		</if>
+		<if test="searchKind == '제작/배포 회사'">
+			and game_company like '%${searchWord}%'
+		</if>
+		<if test="searchKind == '출시일'">
+			and game_pub_date like '%${searchWord}%'
+		</if> -->
+
+	<!-- 게임 정보 검색 전체 결과 페이지 -->
+	<select id="selectGamesCountBySearch" resultType="int">
+		SELECT count(*)
+		FROM (SELECT ROWNUM,
+		m.*
+		FROM (
+		SELECT * FROM game_info
+		WHERE ${searchKindFld} LIKE '%${searchWord}%'
+		ORDER BY id ASC
+		) m
+		)
+	</select>
+	
+	<!-- <if test="searchKind == '게임 이름'">
+			and game_name like '%${searchWord}%'
+		</if>
+		<if test="searchKind == '게임 장르'">
+			and game_genre like '%${searchWord}%'
+		</if>
+		<if test="searchKind == '제작/배포 회사'">
+			and game_company like '%${searchWord}%'
+		</if>
+		<if test="searchKind == '출시일'">
+			and game_pub_date like '%${searchWord}%'
+		</if>
+		 -->
+	
+</mapper>
